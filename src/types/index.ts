@@ -41,6 +41,7 @@ export interface ElectronicEquipment extends BaseEquipment {
 
 export interface Vehicle extends Omit<BaseEquipment, 'brandModel'> {
   type: 'vehicle';
+  licensePlate: string;
   vehicleType: 'passenger' | 'pickup' | 'minibus' | 'van' | 'heavy';
   laborCost: number;
 }

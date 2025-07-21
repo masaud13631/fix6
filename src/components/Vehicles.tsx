@@ -11,6 +11,7 @@ const Vehicles: React.FC = () => {
   const [formData, setFormData] = useState({
     propertyNumber: '',
     name: '',
+    licensePlate: '',
     vehicleType: 'passenger' as const,
     unit: '',
     referralDate: '',
@@ -48,6 +49,7 @@ const Vehicles: React.FC = () => {
     setFormData({
       propertyNumber: '',
       name: '',
+      licensePlate: '',
       vehicleType: 'passenger',
       unit: '',
       referralDate: '',
@@ -66,6 +68,7 @@ const Vehicles: React.FC = () => {
     setFormData({
       propertyNumber: item.propertyNumber,
       name: item.name,
+      licensePlate: item.licensePlate,
       vehicleType: item.vehicleType,
       unit: item.unit,
       referralDate: item.referralDate,
@@ -149,6 +152,9 @@ const Vehicles: React.FC = () => {
                   نام خودرو
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  شماره پلاک
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   نوع
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -167,6 +173,9 @@ const Vehicles: React.FC = () => {
                   هزینه دستمزد
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  توضیحات
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   عملیات
                 </th>
               </tr>
@@ -179,6 +188,9 @@ const Vehicles: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {item.name}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {item.licensePlate || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {vehicleTypeConfig[item.vehicleType]}
@@ -199,6 +211,11 @@ const Vehicles: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {item.laborCost.toLocaleString()} ریال
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900 max-w-xs">
+                    <div className="truncate" title={item.comments}>
+                      {item.comments || '-'}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2 space-x-reverse">
@@ -251,6 +268,19 @@ const Vehicles: React.FC = () => {
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      شماره پلاک انتظامی
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.licensePlate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, licensePlate: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="مثال: 12ج345-14"
                     />
                   </div>
                   
