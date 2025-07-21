@@ -185,3 +185,36 @@ export const updateEquipment = <T extends Equipment>(
   }
   return null;
 };
+
+// Generic delete function
+export const deleteEquipment = (
+  id: string,
+  type: 'office' | 'electronic' | 'vehicle'
+): boolean => {
+  let equipment: any[];
+  let saveFunction: (equipment: any[]) => void;
+
+  switch (type) {
+    case 'office':
+      equipment = getOfficeEquipment();
+      saveFunction = saveOfficeEquipment;
+      break;
+    case 'electronic':
+      equipment = getElectronicEquipment();
+      saveFunction = saveElectronicEquipment;
+      break;
+    case 'vehicle':
+      equipment = getVehicles();
+      saveFunction = saveVehicles;
+      break;
+    default:
+      return false;
+  }
+
+  const filtered = equipment.filter(e => e.id !== id);
+  if (filtered.length !== equipment.length) {
+    saveFunction(filtered);
+    return true;
+  }
+  return false;
+};

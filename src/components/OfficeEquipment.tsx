@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Upload, Eye } from 'lucide-react';
-import { getOfficeEquipment, addOfficeEquipment, updateEquipment } from '../utils/database';
+import { getOfficeEquipment, addOfficeEquipment, updateEquipment, deleteEquipment } from '../utils/database';
 import { OfficeEquipment as OfficeEquipmentType } from '../types';
 
 const OfficeEquipment: React.FC = () => {
@@ -75,6 +75,15 @@ const OfficeEquipment: React.FC = () => {
     });
     setEditingItem(item);
     setShowModal(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('آیا از حذف این مورد اطمینان دارید؟')) {
+      const success = deleteEquipment(id, 'office');
+      if (success) {
+        setEquipment(prev => prev.filter(item => item.id !== id));
+      }
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,6 +207,12 @@ const OfficeEquipment: React.FC = () => {
                         className="text-blue-600 hover:text-blue-900"
                       >
                         <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </td>

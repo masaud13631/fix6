@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Upload, Eye } from 'lucide-react';
-import { getElectronicEquipment, addElectronicEquipment, updateEquipment } from '../utils/database';
+import { getElectronicEquipment, addElectronicEquipment, updateEquipment, deleteEquipment } from '../utils/database';
 import { ElectronicEquipment as ElectronicEquipmentType } from '../types';
 
 const ElectronicEquipment: React.FC = () => {
@@ -75,6 +75,15 @@ const ElectronicEquipment: React.FC = () => {
     });
     setEditingItem(item);
     setShowModal(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('آیا از حذف این مورد اطمینان دارید؟')) {
+      const success = deleteEquipment(id, 'electronic');
+      if (success) {
+        setEquipment(prev => prev.filter(item => item.id !== id));
+      }
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,6 +207,12 @@ const ElectronicEquipment: React.FC = () => {
                         className="text-green-600 hover:text-green-900"
                       >
                         <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </td>

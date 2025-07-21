@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Search, Edit } from 'lucide-react';
-import { getVehicles, addVehicle, updateEquipment } from '../utils/database';
+import { Plus, Search, Edit, Trash2 } from 'lucide-react';
+import { getVehicles, addVehicle, updateEquipment, deleteEquipment } from '../utils/database';
 import { Vehicle } from '../types';
 
 const Vehicles: React.FC = () => {
@@ -81,6 +81,15 @@ const Vehicles: React.FC = () => {
     });
     setEditingItem(item);
     setShowModal(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('آیا از حذف این مورد اطمینان دارید؟')) {
+      const success = deleteEquipment(id, 'vehicle');
+      if (success) {
+        setVehicles(prev => prev.filter(item => item.id !== id));
+      }
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,6 +233,12 @@ const Vehicles: React.FC = () => {
                         className="text-purple-600 hover:text-purple-900"
                       >
                         <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </td>
