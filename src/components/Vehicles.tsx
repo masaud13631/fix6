@@ -455,3 +455,5 @@ const Vehicles: React.FC = () => {
 };
 
 export default Vehicles;
+
+export default Vehicles
