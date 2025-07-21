@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Upload, Eye } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Upload, Eye, Filter, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { getOfficeEquipment, addOfficeEquipment, updateEquipment, deleteEquipment } from '../utils/database';
 import { OfficeEquipment as OfficeEquipmentType } from '../types';
 
@@ -8,6 +8,19 @@ const OfficeEquipment: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<OfficeEquipmentType | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    propertyNumber: '',
+    name: '',
+    brandModel: '',
+    unit: '',
+    dateFrom: '',
+    dateTo: '',
+    repairStatus: '',
+    workshopName: '',
+    minCost: '',
+    maxCost: '',
+  });
   const [formData, setFormData] = useState({
     propertyNumber: '',
     name: '',
@@ -21,11 +34,26 @@ const OfficeEquipment: React.FC = () => {
     comments: '',
   });
 
-  const filteredEquipment = equipment.filter(item =>
-    item.propertyNumber.includes(searchTerm) ||
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.unit.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEquipment = equipment.filter(item => {
+    const matchesSearch = searchTerm === '' || 
+      item.propertyNumber.includes(searchTerm) ||
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.unit.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesPropertyNumber = filters.propertyNumber === '' || item.propertyNumber.includes(filters.propertyNumber);
+    const matchesName = filters.name === '' || item.name.toLowerCase().includes(filters.name.toLowerCase());
+    const matchesBrandModel = filters.brandModel === '' || item.brandModel.toLowerCase().includes(filters.brandModel.toLowerCase());
+    const matchesUnit = filters.unit === '' || item.unit.toLowerCase().includes(filters.unit.toLowerCase());
+    const matchesDateRange = (!filters.dateFrom || new Date(item.referralDate) >= new Date(filters.dateFrom)) &&
+      (!filters.dateTo || new Date(item.referralDate) <= new Date(filters.dateTo));
+    const matchesStatus = filters.repairStatus === '' || item.repairStatus === filters.repairStatus;
+    const matchesWorkshop = filters.workshopName === '' || item.workshopName.toLowerCase().includes(filters.workshopName.toLowerCase());
+    const matchesCostRange = (!filters.minCost || item.cost >= parseInt(filters.minCost)) &&
+      (!filters.maxCost || item.cost <= parseInt(filters.maxCost));
+    
+    return matchesSearch && matchesPropertyNumber && matchesName && matchesBrandModel && 
+           matchesUnit && matchesDateRange && matchesStatus && matchesWorkshop && matchesCostRange;
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +125,79 @@ const OfficeEquipment: React.FC = () => {
     }
   };
 
+  const clearFilters = () => {
+    setFilters({
+      propertyNumber: '',
+      name: '',
+      brandModel: '',
+      unit: '',
+      dateFrom: '',
+      dateTo: '',
+      repairStatus: '',
+      workshopName: '',
+      minCost: '',
+      maxCost: '',
+    });
+    setSearchTerm('');
+  };
+
+  const exportToCSV = () => {
+    const headers = ['شماره اموال', 'نام', 'برند و مدل', 'واحد', 'تاریخ ارجاع', 'وضعیت', 'تعمیرگاه', 'هزینه', 'توضیحات'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredEquipment.map(item => [
+        item.propertyNumber,
+        item.name,
+        item.brandModel,
+        item.unit,
+        new Date(item.referralDate).toLocaleDateString('fa-IR'),
+        statusConfig[item.repairStatus].label,
+        item.workshopName,
+        item.cost.toLocaleString(),
+        item.comments || ''
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `office_equipment_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportToJSON = () => {
+    const jsonContent = JSON.stringify(filteredEquipment, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `office_equipment_${new Date().toISOString().split('T')[0]}.json`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportToTXT = () => {
+    const txtContent = filteredEquipment.map(item => 
+      `شماره اموال: ${item.propertyNumber}\nنام: ${item.name}\nبرند و مدل: ${item.brandModel}\nواحد: ${item.unit}\nتاریخ ارجاع: ${new Date(item.referralDate).toLocaleDateString('fa-IR')}\nوضعیت: ${statusConfig[item.repairStatus].label}\nتعمیرگاه: ${item.workshopName}\nهزینه: ${item.cost.toLocaleString()} ریال\nتوضیحات: ${item.comments || 'ندارد'}\n${'='.repeat(50)}`
+    ).join('\n\n');
+
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `office_equipment_${new Date().toISOString().split('T')[0]}.txt`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const statusConfig = {
     'under-repair': { label: 'در حال تعمیر', color: 'bg-yellow-100 text-yellow-800' },
     'repaired': { label: 'تعمیر شده', color: 'bg-green-100 text-green-800' },
@@ -111,13 +212,57 @@ const OfficeEquipment: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">تعمیر لوازم اداری</h1>
           <p className="text-gray-600 mt-1">مدیریت تعمیرات لوازم اداری سازمان</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-        >
-          <Plus className="h-4 w-4 ml-2" />
-          افزودن تعمیر جدید
-        </button>
+        <div className="flex items-center space-x-4 space-x-reverse">
+          <div className="relative">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+            >
+              <Filter className="h-4 w-4 ml-2" />
+              فیلترها
+            </button>
+          </div>
+          
+          <div className="relative group">
+            <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+              <Download className="h-4 w-4 ml-2" />
+              خروجی
+            </button>
+            <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+              <div className="py-1">
+                <button
+                  onClick={exportToCSV}
+                  className="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <FileSpreadsheet className="h-4 w-4 ml-2" />
+                  CSV
+                </button>
+                <button
+                  onClick={exportToJSON}
+                  className="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <FileText className="h-4 w-4 ml-2" />
+                  JSON
+                </button>
+                <button
+                  onClick={exportToTXT}
+                  className="block w-full text-right px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                >
+                  <FileText className="h-4 w-4 ml-2" />
+                  TXT
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
+            <Plus className="h-4 w-4 ml-2" />
+            افزودن تعمیر جدید
+          </button>
+        </div>
       </div>
 
       {/* Search */}
@@ -133,6 +278,139 @@ const OfficeEquipment: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Advanced Filters */}
+      {showFilters && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">فیلترهای پیشرفته</h3>
+            <button
+              onClick={clearFilters}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              پاک کردن فیلترها
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">شماره اموال</label>
+              <input
+                type="text"
+                value={filters.propertyNumber}
+                onChange={(e) => setFilters(prev => ({ ...prev, propertyNumber: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="جستجو در شماره اموال"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">نام</label>
+              <input
+                type="text"
+                value={filters.name}
+                onChange={(e) => setFilters(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="جستجو در نام"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">برند و مدل</label>
+              <input
+                type="text"
+                value={filters.brandModel}
+                onChange={(e) => setFilters(prev => ({ ...prev, brandModel: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="جستجو در برند و مدل"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">واحد</label>
+              <input
+                type="text"
+                value={filters.unit}
+                onChange={(e) => setFilters(prev => ({ ...prev, unit: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="جستجو در واحد"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">از تاریخ</label>
+              <input
+                type="date"
+                value={filters.dateFrom}
+                onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">تا تاریخ</label>
+              <input
+                type="date"
+                value={filters.dateTo}
+                onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">وضعیت تعمیر</label>
+              <select
+                value={filters.repairStatus}
+                onChange={(e) => setFilters(prev => ({ ...prev, repairStatus: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">همه وضعیت‌ها</option>
+                <option value="waiting">در حال انتظار</option>
+                <option value="under-repair">در حال تعمیر</option>
+                <option value="repaired">تعمیر شده</option>
+                <option value="unrepairable">غیرقابل تعمیر</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">تعمیرگاه</label>
+              <input
+                type="text"
+                value={filters.workshopName}
+                onChange={(e) => setFilters(prev => ({ ...prev, workshopName: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="جستجو در نام تعمیرگاه"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">حداقل هزینه</label>
+              <input
+                type="number"
+                value={filters.minCost}
+                onChange={(e) => setFilters(prev => ({ ...prev, minCost: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ریال"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">حداکثر هزینه</label>
+              <input
+                type="number"
+                value={filters.maxCost}
+                onChange={(e) => setFilters(prev => ({ ...prev, maxCost: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ریال"
+              />
+            </div>
+          </div>
+          
+          <div className="mt-4 text-sm text-gray-600">
+            نمایش {filteredEquipment.length} مورد از {equipment.length} مورد
+          </div>
+        </div>
+      )}
 
       {/* Equipment Table */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
