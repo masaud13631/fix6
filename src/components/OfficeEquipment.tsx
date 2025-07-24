@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Upload, Eye, Filter, Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { getOfficeEquipment, addOfficeEquipment, updateEquipment, deleteEquipment } from '../utils/database';
+import { toJalali } from '../utils/dateUtils';
+import DateInput from './DateInput';
 import { OfficeEquipment as OfficeEquipmentType } from '../types';
 
 const OfficeEquipment: React.FC = () => {
@@ -150,7 +152,7 @@ const OfficeEquipment: React.FC = () => {
         item.name,
         item.brandModel,
         item.unit,
-        new Date(item.referralDate).toLocaleDateString('fa-IR'),
+        toJalali(new Date(item.referralDate)),
         statusConfig[item.repairStatus].label,
         item.workshopName,
         item.cost.toLocaleString(),
@@ -184,7 +186,7 @@ const OfficeEquipment: React.FC = () => {
 
   const exportToTXT = () => {
     const txtContent = filteredEquipment.map(item => 
-      `شماره اموال: ${item.propertyNumber}\nنام: ${item.name}\nبرند و مدل: ${item.brandModel}\nواحد: ${item.unit}\nتاریخ ارجاع: ${new Date(item.referralDate).toLocaleDateString('fa-IR')}\nوضعیت: ${statusConfig[item.repairStatus].label}\nتعمیرگاه: ${item.workshopName}\nهزینه: ${item.cost.toLocaleString()} ریال\nتوضیحات: ${item.comments || 'ندارد'}\n${'='.repeat(50)}`
+      `شماره اموال: ${item.propertyNumber}\nنام: ${item.name}\nبرند و مدل: ${item.brandModel}\nواحد: ${item.unit}\nتاریخ ارجاع: ${toJalali(new Date(item.referralDate))}\nوضعیت: ${statusConfig[item.repairStatus].label}\nتعمیرگاه: ${item.workshopName}\nهزینه: ${item.cost.toLocaleString()} ریال\nتوضیحات: ${item.comments || 'ندارد'}\n${'='.repeat(50)}`
     ).join('\n\n');
 
     const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' });
@@ -338,22 +340,18 @@ const OfficeEquipment: React.FC = () => {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">از تاریخ</label>
-              <input
-                type="date"
+              <DateInput
+                label="از تاریخ"
                 value={filters.dateFrom}
                 onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">تا تاریخ</label>
-              <input
-                type="date"
+              <DateInput
+                label="تا تاریخ"
                 value={filters.dateTo}
                 onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             
@@ -463,7 +461,7 @@ const OfficeEquipment: React.FC = () => {
                     {item.unit}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(item.referralDate).toLocaleDateString('fa-IR')}
+                    {toJalali(new Date(item.referralDate))}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusConfig[item.repairStatus].color}`}>
@@ -564,11 +562,8 @@ const OfficeEquipment: React.FC = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      تاریخ ارجاع به تعمیرگاه *
-                    </label>
-                    <input
-                      type="date"
+                    <DateInput
+                      label="تاریخ ارجاع به تعمیرگاه"
                       required
                       value={formData.referralDate}
                       onChange={(e) => setFormData(prev => ({ ...prev, referralDate: e.target.value }))}
@@ -670,7 +665,6 @@ const OfficeEquipment: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
   );
 };
 

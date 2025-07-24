@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2, Shield, ShieldCheck, User } from 'lucide-react';
 import { getUsers, addUser, updateUser, deleteUser } from '../utils/database';
+import { toJalali } from '../utils/dateUtils';
 import { User as UserType } from '../types';
 
 const UserManagement: React.FC = () => {
@@ -204,7 +205,7 @@ const UserManagement: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(user.createdAt).toLocaleDateString('fa-IR')}
+                      {toJalali(new Date(user.createdAt))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2 space-x-reverse">

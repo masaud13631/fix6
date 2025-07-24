@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Plus, Search, Edit, Trash2 } from 'lucide-react';
 import { getVehicles, addVehicle, updateEquipment, deleteEquipment } from '../utils/database';
+import { toJalali } from '../utils/dateUtils';
+import DateInput from './DateInput';
 import { Vehicle } from '../types';
 
 const Vehicles: React.FC = () => {
@@ -208,7 +210,7 @@ const Vehicles: React.FC = () => {
                     {item.unit}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(item.referralDate).toLocaleDateString('fa-IR')}
+                    {toJalali(new Date(item.referralDate))}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusConfig[item.repairStatus].color}`}>
@@ -331,15 +333,11 @@ const Vehicles: React.FC = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      تاریخ ارجاع به تعمیرگاه *
-                    </label>
-                    <input
-                      type="date"
+                    <DateInput
+                      label="تاریخ ارجاع به تعمیرگاه"
                       required
                       value={formData.referralDate}
                       onChange={(e) => setFormData(prev => ({ ...prev, referralDate: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
                   </div>
                   

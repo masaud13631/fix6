@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { FileText, Download, Filter, TrendingUp, DollarSign } from 'lucide-react';
 import { getOfficeEquipment, getElectronicEquipment, getVehicles } from '../utils/database';
+import { toJalali } from '../utils/dateUtils';
+import DateInput from './DateInput';
 
 const Reports: React.FC = () => {
   const [dateFrom, setDateFrom] = useState('');
@@ -79,7 +81,7 @@ const Reports: React.FC = () => {
         item.name,
         item.category,
         item.unit,
-        new Date(item.referralDate).toLocaleDateString('fa-IR'),
+        toJalali(new Date(item.referralDate)),
         statusConfig[item.repairStatus].label,
         ('totalCost' in item ? item.totalCost : item.cost).toLocaleString()
       ].join(','))
@@ -125,26 +127,18 @@ const Reports: React.FC = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              از تاریخ
-            </label>
-            <input
-              type="date"
+            <DateInput
+              label="از تاریخ"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              تا تاریخ
-            </label>
-            <input
-              type="date"
+            <DateInput
+              label="تا تاریخ"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
           
@@ -321,7 +315,7 @@ const Reports: React.FC = () => {
                     {item.unit}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {new Date(item.referralDate).toLocaleDateString('fa-IR')}
+                    {toJalali(new Date(item.referralDate))}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`text-sm font-medium ${statusConfig[item.repairStatus].color}`}>
